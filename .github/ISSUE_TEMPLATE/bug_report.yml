@@ -1,0 +1,42 @@
+name: Bug report
+description: Report a reproducible Claude Island defect without private data.
+title: "[Bug]: "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include credentials, Claude transcripts, customer data or vulnerability details. Security issues must use private vulnerability reporting.
+  - type: input
+    id: version
+    attributes:
+      label: Claude Island version
+      placeholder: 0.1.0 (1)
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS and Mac architecture
+      placeholder: macOS 15.5, Apple Silicon
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What happened?
+      description: Include safe reproduction steps and expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Redacted diagnostics
+      description: Remove usernames, paths, prompts, session IDs and tokens.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy confirmation
+      options:
+        - label: I removed credentials, private transcripts and personal or customer data.
+          required: true

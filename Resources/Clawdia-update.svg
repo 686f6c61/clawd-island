@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 45 45" width="500" height="500" role="img" aria-label="Clawd holding an update sign">
+  <defs>
+    <style>
+      .update-pose {
+        transform-origin: 7.5px 15px;
+        animation: update-arrival 0.8s 1 cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+      .sign-rig {
+        transform-origin: 7.5px 1px;
+        animation: sign-settle 1s 1 ease-out both;
+      }
+      .eyes {
+        transform-origin: 7.5px 9px;
+        animation: blink 4.2s infinite linear;
+      }
+      .shine {
+        opacity: 0.2;
+        animation: shine 1.2s 1 ease-in-out both;
+      }
+      @keyframes update-arrival {
+        0% { transform: translateY(1.2px); }
+        58% { transform: translateY(-0.35px); }
+        100% { transform: translateY(0); }
+      }
+      @keyframes sign-settle {
+        0% { transform: rotate(-4deg); }
+        58% { transform: rotate(0.8deg); }
+        100% { transform: rotate(-1.2deg); }
+      }
+      @keyframes blink {
+        0%, 43%, 47%, 100% { transform: scaleY(1); }
+        45% { transform: scaleY(0.12); }
+      }
+      @keyframes shine {
+        0%, 100% { opacity: 0.2; }
+        48% { opacity: 0.9; }
+      }
+    </style>
+  </defs>
+
+  <g class="update-pose">
+    <rect x="2" y="15" width="11" height="1" fill="#000000" opacity="0.46"/>
+
+    <g class="sign-rig">
+      <rect x="1" y="-1" width="1" height="8" fill="#B95F4C"/>
+      <rect x="13" y="-1" width="1" height="8" fill="#B95F4C"/>
+      <rect x="-4" y="-7" width="23" height="8" rx="1" fill="#111111" stroke="#FF9C38" stroke-width="1"/>
+      <rect class="shine" x="-2.5" y="-5.5" width="1" height="1" fill="#FFD08A"/>
+      <text x="7.5" y="-1.45" fill="#FF9C38" font-family="Menlo, Monaco, monospace" font-size="4.1" font-weight="700" text-anchor="middle" letter-spacing="0.25">UPDATE</text>
+    </g>
+
+    <g fill="#DE886D">
+      <rect x="2" y="6" width="11" height="7"/>
+      <rect x="0" y="5" width="2" height="3"/>
+      <rect x="13" y="5" width="2" height="3"/>
+      <rect x="3" y="13" width="1" height="2"/>
+      <rect x="5" y="13" width="1" height="2"/>
+      <rect x="9" y="13" width="1" height="2"/>
+      <rect x="11" y="13" width="1" height="2"/>
+    </g>
+
+    <g class="eyes" fill="#000000">
+      <rect x="4" y="8" width="1" height="2"/>
+      <rect x="10" y="8" width="1" height="2"/>
+    </g>
+    <rect x="7" y="11" width="1" height="1" fill="#A95445"/>
+  </g>
+<style>
+  .clawdia-bow {
+    transform-origin: 12.5px 5.5px;
+    animation: clawdia-bow-sway 2.8s infinite ease-in-out;
+  }
+  .clawdia-heart {
+    opacity: 0;
+    transform-origin: 2.5px 2.5px;
+    animation: clawdia-heart-rise 2.5s infinite ease-out;
+  }
+  .clawdia-heart.h2 { animation-delay: -0.85s; }
+  .clawdia-heart.h3 { animation-delay: -1.7s; }
+  @keyframes clawdia-bow-sway {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(4deg); }
+  }
+  @keyframes clawdia-heart-rise {
+    0% { opacity: 0; transform: translateY(0) scale(0.72); }
+    14% { opacity: 0.95; }
+    76% { opacity: 0.8; }
+    100% { opacity: 0; transform: translateY(-11px) scale(1.08); }
+  }
+  @keyframes clawdia-heart-pulse {
+    0%, 100% { opacity: 0.35; transform: scale(0.72); }
+    50% { opacity: 1; transform: scale(1.05); }
+  }
+  @keyframes clawdia-bow-work {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50% { transform: translateY(-0.5px) rotate(5deg); }
+  }
+  @keyframes clawdia-bow-droop {
+    0%, 100% { transform: translateY(1px) rotate(12deg); }
+    50% { transform: translateY(1.5px) rotate(16deg); }
+  }
+  .clawdia-bow { animation: clawdia-bow-sway 1.4s 1 ease-in-out; } .clawdia-sign-heart { animation: clawdia-heart-pulse 1.4s 1 ease-in-out; opacity: 0.65; }
+</style>
+<g class="clawdia-blush" fill="#F06B9D" opacity="0.78">
+  <rect x="2.7" y="10.2" width="1" height="0.65"/>
+  <rect x="11.3" y="10.2" width="1" height="0.65"/>
+</g>
+<g class="clawdia-bow">
+  <rect x="10" y="4" width="2" height="2" fill="#FF6FAE"/>
+  <rect x="13" y="4" width="2" height="2" fill="#FF6FAE"/>
+  <rect x="11" y="3" width="1" height="1" fill="#FF91C1"/>
+  <rect x="14" y="3" width="1" height="1" fill="#FF91C1"/>
+  <rect x="12" y="5" width="1" height="1" fill="#D83B82"/>
+</g>
+<g transform="translate(16.2 -6.3) scale(0.34)">
+  <path class="clawdia-sign-heart" d="M0 1h1V0h1v1h1V0h1v1h1v2H4v1H3v1H2V4H1V3H0z" fill="#FF5E9D"/>
+</g></svg>

@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 45 45" width="500" height="500">
+  <defs>
+    <style>
+      .error-body {
+        transform-origin: 7.5px 15px;
+        animation: error-shake 0.1s infinite alternate;
+      }
+      .error-shadow {
+        animation: error-shadow-flash 1s infinite;
+      }
+      .error-flash {
+        animation: error-bg-flash 1s infinite;
+      }
+      .error-x1 { animation: x-pulse 0.5s infinite alternate; }
+      .error-x2 { animation: x-pulse 0.5s infinite alternate-reverse; }
+      @keyframes error-shake {
+        0% { transform: translateX(-1px); }
+        100% { transform: translateX(1px); }
+      }
+      @keyframes error-shadow-flash {
+        0%, 49% { fill: #FF0000; opacity: 0.3; }
+        50%, 100% { fill: #000; opacity: 0.5; }
+      }
+      @keyframes error-bg-flash {
+        0%, 49% { opacity: 0.1; }
+        50%, 100% { opacity: 0; }
+      }
+      @keyframes x-pulse {
+        0% { opacity: 0.7; }
+        100% { opacity: 1; }
+      }
+    </style>
+  </defs>
+  <rect class="error-flash" x="-15" y="-25" width="45" height="45" fill="#FF0000" opacity="0"/>
+  <rect class="error-shadow" x="3" y="15" width="9" height="1" fill="#000" opacity="0.5"/>
+  <!-- Error X symbols floating -->
+  <g fill="#FF0000">
+    <g class="error-x1">
+      <rect x="-1" y="-2" width="1" height="1"/><rect x="0" y="-1" width="1" height="1"/>
+      <rect x="1" y="-2" width="1" height="1"/><rect x="0" y="-3" width="1" height="1"/>
+    </g>
+    <g class="error-x2">
+      <rect x="15" y="-1" width="1" height="1"/><rect x="16" y="0" width="1" height="1"/>
+      <rect x="17" y="-1" width="1" height="1"/><rect x="16" y="-2" width="1" height="1"/>
+    </g>
+  </g>
+  <g class="error-body">
+    <g fill="#DE886D">
+      <rect x="3" y="13" width="1" height="2"/>
+      <rect x="5" y="13" width="1" height="2"/>
+      <rect x="9" y="13" width="1" height="2"/>
+      <rect x="11" y="13" width="1" height="2"/>
+      <rect x="2" y="6" width="11" height="7"/>
+      <rect x="0" y="10" width="2" height="2"/>
+      <rect x="13" y="10" width="2" height="2"/>
+    </g>
+    <!-- X eyes -->
+    <g fill="#FF0000">
+      <rect x="4" y="7" width="1" height="1"/><rect x="6" y="7" width="1" height="1"/>
+      <rect x="5" y="8" width="1" height="1"/>
+      <rect x="4" y="9" width="1" height="1"/><rect x="6" y="9" width="1" height="1"/>
+      <rect x="10" y="7" width="1" height="1"/><rect x="12" y="7" width="1" height="1"/>
+      <rect x="11" y="8" width="1" height="1"/>
+      <rect x="10" y="9" width="1" height="1"/><rect x="12" y="9" width="1" height="1"/>
+    </g>
+  </g>
+<style>
+  .clawdia-bow {
+    transform-origin: 12.5px 5.5px;
+    animation: clawdia-bow-sway 2.8s infinite ease-in-out;
+  }
+  .clawdia-heart {
+    opacity: 0;
+    transform-origin: 2.5px 2.5px;
+    animation: clawdia-heart-rise 2.5s infinite ease-out;
+  }
+  .clawdia-heart.h2 { animation-delay: -0.85s; }
+  .clawdia-heart.h3 { animation-delay: -1.7s; }
+  @keyframes clawdia-bow-sway {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(4deg); }
+  }
+  @keyframes clawdia-heart-rise {
+    0% { opacity: 0; transform: translateY(0) scale(0.72); }
+    14% { opacity: 0.95; }
+    76% { opacity: 0.8; }
+    100% { opacity: 0; transform: translateY(-11px) scale(1.08); }
+  }
+  @keyframes clawdia-heart-pulse {
+    0%, 100% { opacity: 0.35; transform: scale(0.72); }
+    50% { opacity: 1; transform: scale(1.05); }
+  }
+  @keyframes clawdia-bow-work {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50% { transform: translateY(-0.5px) rotate(5deg); }
+  }
+  @keyframes clawdia-bow-droop {
+    0%, 100% { transform: translateY(1px) rotate(12deg); }
+    50% { transform: translateY(1.5px) rotate(16deg); }
+  }
+  .clawdia-bow { animation: clawdia-bow-droop 2s infinite ease-in-out; }
+</style>
+<g class="clawdia-blush" fill="#F06B9D" opacity="0.78">
+  <rect x="2.7" y="10.2" width="1" height="0.65"/>
+  <rect x="11.3" y="10.2" width="1" height="0.65"/>
+</g>
+<g class="clawdia-bow">
+  <rect x="10" y="4" width="2" height="2" fill="#FF6FAE"/>
+  <rect x="13" y="4" width="2" height="2" fill="#FF6FAE"/>
+  <rect x="11" y="3" width="1" height="1" fill="#FF91C1"/>
+  <rect x="14" y="3" width="1" height="1" fill="#FF91C1"/>
+  <rect x="12" y="5" width="1" height="1" fill="#D83B82"/>
+</g>
+<g transform="translate(-1 2) scale(0.38)">
+  <path d="M0 1h1V0h1v1h1V0h1v1h1v2H4v1H3v1H2V4H1V3H0z" fill="#F05A91"/>
+  <path d="M2 1h1v1H2v1h1v1H2" fill="#7C244C"/>
+</g></svg>

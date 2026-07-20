@@ -1,0 +1,25 @@
+.DS_Store
+.build/
+build/
+dist/
+.swiftpm/
+DerivedData/
+*.xcarchive
+*.dSYM
+*.xcuserstate
+xcuserdata/
+
+# Signing, notarization and local configuration
+*.p12
+*.cer
+*.provisionprofile
+*.mobileprovision
+*.pem
+*.key
+.env
+.env.*
+!.env.example
+
+# Local release evidence and temporary notes
+*.notarization.json
+RELEASE_NOTES.md

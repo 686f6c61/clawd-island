@@ -1,0 +1,157 @@
+Business Source License 1.1
+
+Parameters
+
+Licensor: 686f6c61
+
+Licensed Work: Claude Island 0.1.0, including its source code, compiled
+binaries, build tooling, and first-party documentation, but excluding
+third-party components and artwork identified in THIRD_PARTY_NOTICES.md.
+The Licensed Work is Copyright (c) 2026 686f6c61.
+
+Additional Use Grant: You may make Production Use of the Licensed Work if,
+at the time of that use, one of the following applies:
+
+1. Personal Use. You are a natural person using the Licensed Work solely for
+   personal, educational, research, or other non-commercial purposes.
+
+2. Independent Professional Use. You are a natural person using the Licensed
+   Work in your own capacity as an independent professional or sole trader,
+   and your Professional Business is a Qualifying Small Organization. You may
+   use the Licensed Work while providing services to a client of any size,
+   provided the client does not install, operate, control, receive a copy of,
+   or otherwise make its own Production Use of the Licensed Work under this
+   grant.
+
+3. Small Organization Use. You are making Production Use solely for the
+   benefit of a Qualifying Small Organization.
+
+A "Qualifying Small Organization" is an organization whose Controlled Group,
+during its most recently completed fiscal year, had both:
+
+* fewer than 25 People; and
+* less than EUR 1,000,000 in Annual Revenue or annual operating budget.
+
+"Organization" includes a company, partnership, sole proprietorship,
+association, public body, non-profit organization, and any other legal or
+economic undertaking.
+
+"Professional Business" means the sole proprietorship or other undertaking
+through which an independent professional provides services.
+
+"People" means the average total number of employees and individual
+independent contractors who worked for the Controlled Group during the fiscal
+year, regardless of whether they were full-time or part-time.
+
+"Annual Revenue" means worldwide gross revenue before costs, taxes, or other
+deductions. Revenue or budgets denominated in another currency must be
+converted to euros using the European Central Bank reference rate applicable
+at the end of the fiscal year.
+
+"Controlled Group" means the organization, every entity that controls it,
+every entity it controls, and every entity under common control with it.
+"Control" means direct or indirect ownership of more than 50 percent of the
+voting interests or the power to direct management and policies by ownership,
+contract, or otherwise.
+
+If a person or organization ceases to qualify under paragraphs 2 or 3 solely
+because it crosses a People, Annual Revenue, or operating-budget threshold,
+its Production Use remains permitted for 90 days after the end of the fiscal
+year in which the threshold was crossed. This transition period is solely to
+obtain another license or stop Production Use.
+
+This Additional Use Grant does not restrict any non-production rights already
+granted by the Business Source License. For alternative licensing
+arrangements, contact 686f6c61@00b.tech.
+
+"Production Use" means use of the Licensed Work to perform or support ongoing
+personal, professional, organizational, customer-facing, revenue-generating,
+or operational work. It excludes evaluation, testing, development of the
+Licensed Work itself, and demonstration in an environment that is not relied
+on for actual work. If an organization or Professional Business has not
+completed a fiscal year, eligibility is determined using a reasonable,
+good-faith forecast of its People and Annual Revenue or operating budget for
+the current fiscal year.
+
+Change Date: 2030-07-19
+
+Change License: Apache License, Version 2.0
+
+Notice
+
+The Business Source License (this document, or the "License") is not an Open
+Source license. However, the Licensed Work will eventually be made available
+under an Open Source License, as stated in this License.
+
+License text copyright (c) 2024 MariaDB plc, All Rights Reserved.
+"Business Source License" is a trademark of MariaDB plc.
+
+Terms
+
+The Licensor hereby grants you the right to copy, modify, create derivative
+works, redistribute, and make non-production use of the Licensed Work. The
+Licensor may make an Additional Use Grant, above, permitting limited
+production use.
+
+Effective on the Change Date, or the fourth anniversary of the first publicly
+available distribution of a specific version of the Licensed Work under this
+License, whichever comes first, the Licensor hereby grants you rights under
+the terms of the Change License, and the rights granted in the paragraph above
+terminate.
+
+If your use of the Licensed Work does not comply with the requirements
+currently in effect as described in this License, you must purchase a
+commercial license from the Licensor, its affiliated entities, or authorized
+resellers, or you must refrain from using the Licensed Work.
+
+All copies of the original and modified Licensed Work, and derivative works of
+the Licensed Work, are subject to this License. This License applies
+separately for each version of the Licensed Work and the Change Date may vary
+for each version of the Licensed Work released by Licensor.
+
+You must conspicuously display this License on each original or modified copy
+of the Licensed Work. If you receive the Licensed Work in original or modified
+form from a third party, the terms and conditions set forth in this License
+apply to your use of that work.
+
+Any use of the Licensed Work in violation of this License will automatically
+terminate your rights under this License for the current and all other
+versions of the Licensed Work.
+
+This License does not grant you any right in any trademark or logo of Licensor
+or its affiliates (provided that you may use a trademark or logo of Licensor
+as expressly required by this License).
+
+TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON AN
+"AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+TITLE.
+
+MariaDB hereby grants you permission to use this License's text to license
+your works, and to refer to it using the trademark "Business Source License",
+as long as you comply with the Covenants of Licensor below.
+
+Covenants of Licensor
+
+In consideration of the right to use this License's text and the "Business
+Source License" name and trademark, Licensor covenants to MariaDB, and to all
+other recipients of the licensed work to be provided by Licensor:
+
+1. To specify as the Change License the GPL Version 2.0 or any later version,
+   or a license that is compatible with GPL Version 2.0 or a later version,
+   where "compatible" means that software provided under the Change License
+   can be included in a program with software provided under GPL Version 2.0
+   or a later version. Licensor may specify additional Change Licenses without
+   limitation.
+
+2. To either: (a) specify an additional grant of rights to use that does not
+   impose any additional restriction on the right granted in this License, as
+   the Additional Use Grant; or (b) insert the text "None".
+
+3. To specify a Change Date.
+
+4. Not to modify this License in any other way.
+
+The canonical Business Source License 1.1 text is published at
+https://mariadb.com/bsl11/.
