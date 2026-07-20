@@ -4,6 +4,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   Check,
+  Cpu,
   GithubLogo,
   GlobeHemisphereWest,
   XLogo,
@@ -113,6 +114,8 @@ const copy = {
     downloadTitle: "Una descarga. Dos arquitecturas.",
     downloadBody:
       "El paquete oficial será universal para Apple Silicon e Intel. Publicaremos checksum, inventario de dependencias y feed de actualización firmado junto al ZIP notarizado.",
+    platformPrimary: "Nativa para Apple Silicon",
+    platformSecondary: "También compatible con Mac Intel",
     safeguards: [
       "Developer ID + Hardened Runtime",
       "Notarización y ticket grapado",
@@ -216,6 +219,8 @@ const copy = {
     downloadTitle: "One download. Two architectures.",
     downloadBody:
       "The official package will be universal for Apple Silicon and Intel. A checksum, dependency inventory and signed update feed will ship beside the notarized ZIP.",
+    platformPrimary: "Native on Apple Silicon",
+    platformSecondary: "Also compatible with Intel Macs",
     safeguards: [
       "Developer ID + Hardened Runtime",
       "Notarized and stapled",
@@ -529,6 +534,13 @@ export function App() {
               <Eyebrow light>04 / {t.downloadEyebrow}</Eyebrow>
               <h2>{t.downloadTitle}</h2>
               <p>{t.downloadBody}</p>
+              <div className="platform-badge">
+                <Cpu size={23} weight="bold" aria-hidden="true" />
+                <span>
+                  <strong>{t.platformPrimary}</strong>
+                  <small>{t.platformSecondary}</small>
+                </span>
+              </div>
               <div className="download-actions">
                 <ReleaseButton release={release} t={t} />
                 <a className="button button-ghost" href={`${REPOSITORY}/releases`}>
