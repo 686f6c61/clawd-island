@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (${{ matrix.runner }})
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Show toolchain
+        run: swift --version
+      - name: Test
+        run: swift test
+      - name: Build release products
+        run: |
+          swift build -c release --product ClaudeIsland
+          swift build -c release --product ClaudeIslandHook
+      - name: Validate manifests and scripts
+        run: |
+          plutil -lint Resources/Info.plist Resources/PrivacyInfo.xcprivacy
+          for script in scripts/*.sh; do zsh -n "$script"; done
+
+  universal-package:
+    name: Universal package smoke test
+    runs-on: macos-15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Build ad-hoc universal app
+        run: CLAUDE_ISLAND_SIGN_IDENTITY=- ./scripts/build-app.sh
+      - name: Verify bundle and architectures
+        run: |
+          APP="build/Claude Island.app"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          for executable in \
+            "$APP/Contents/MacOS/ClaudeIsland" \
+            "$APP/Contents/Resources/ClaudeIslandHook"; do
+            lipo -archs "$executable" | grep -qw arm64
+            lipo -archs "$executable" | grep -qw x86_64
+          done

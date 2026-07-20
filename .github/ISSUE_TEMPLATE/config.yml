@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/686f6c61/clawd-island/security/advisories/new
+    about: Never disclose suspected vulnerabilities in a public issue.
+  - name: Licensing and usage
+    url: https://claude-island.686f6c61.dev
+    about: Review the project website and licensing documentation.
