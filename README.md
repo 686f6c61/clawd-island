@@ -16,9 +16,11 @@ telemetry service.
 [Changelog](CHANGELOG.md) ·
 [Security](SECURITY.md)
 
-> **Pre-release:** the source is public, but an official download is published
-> only after Developer ID signing, notarization, and update-feed verification
-> succeed. Do not redistribute ad-hoc development builds as official releases.
+> **Public beta:** an unsigned and non-notarized universal test build is
+> available from [Releases](https://github.com/686f6c61/clawd-island/releases).
+> macOS may require manual confirmation before opening it. This beta is not the
+> official signed release, which remains gated on Developer ID signing,
+> notarization, and update-feed verification.
 
 ## Highlights
 
