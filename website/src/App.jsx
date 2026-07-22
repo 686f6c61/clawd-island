@@ -11,8 +11,18 @@ import {
 } from "@phosphor-icons/react";
 
 const REPOSITORY = "https://github.com/686f6c61/clawd-island";
-const RELEASE_API =
-  "https://api.github.com/repos/686f6c61/clawd-island/releases/tags/v1.0.0";
+const RELEASE_CANDIDATES = [
+  {
+    state: "available",
+    url: "https://api.github.com/repos/686f6c61/clawd-island/releases/tags/v1.0.0",
+  },
+  {
+    state: "beta",
+    url: "https://api.github.com/repos/686f6c61/clawd-island/releases/tags/v0.1.0-beta.1",
+  },
+];
+const APPLE_OPEN_GUIDE =
+  "https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unknown-developer-mh40616/mac";
 
 const featureMascots = [
   "clawd-menu.svg",
@@ -42,8 +52,13 @@ const copy = {
     releaseLabel: "Edición de lanzamiento",
     releaseBody:
       "La descarga se habilitará únicamente cuando el paquete universal esté firmado con Developer ID, notarizado por Apple y publicado como release oficial.",
+    betaReleaseStatus: "Beta pública disponible",
+    betaReleaseLabel: "Compilación de prueba",
+    betaReleaseBody:
+      "Puedes probar Claude Island antes del lanzamiento estable. Esta beta es universal, pero todavía no está firmada con Developer ID ni notarizada por Apple.",
     releaseUnavailable: "Descarga en preparación",
     releaseAvailable: "Descargar para macOS",
+    betaAvailable: "Descargar beta 0.1.0",
     source: "Ver código fuente",
     proof: "Producto real / captura real",
     sectionFeatures: "Todo tu trabajo, a la vista",
@@ -114,6 +129,10 @@ const copy = {
     downloadTitle: "Una descarga. Dos arquitecturas.",
     downloadBody:
       "El paquete oficial será universal para Apple Silicon e Intel. Publicaremos checksum, inventario de dependencias y feed de actualización firmado junto al ZIP notarizado.",
+    betaDownloadEyebrow: "Beta pública",
+    betaDownloadTitle: "Pruébala ya en tu Mac.",
+    betaDownloadBody:
+      "Descarga la beta 0.1.0 para Apple Silicon o Intel. No necesita la App Store y contiene la aplicación real que estamos preparando para el lanzamiento estable.",
     platformPrimary: "Nativa para Apple Silicon",
     platformSecondary: "También compatible con Mac Intel",
     safeguards: [
@@ -122,7 +141,18 @@ const copy = {
       "Apple Silicon + Intel",
       "Actualizaciones Sparkle firmadas",
     ],
+    betaSafeguards: [
+      "Apple Silicon + Intel",
+      "Código fuente público",
+      "Sin backend ni telemetría",
+      "Firma y notarización pendientes",
+    ],
     requirement: "Requiere macOS 14 o posterior y Claude Code instalado.",
+    betaRequirement: "Beta 0.1.0 · Requiere macOS 14 o posterior y Claude Code instalado.",
+    betaWarningTitle: "Beta sin notarizar",
+    betaWarning:
+      "macOS puede bloquear el primer arranque. Intenta abrir la app y después usa Ajustes del Sistema → Privacidad y seguridad → Abrir igualmente. No desactives Gatekeeper.",
+    betaOpenGuide: "Ver instrucciones oficiales de Apple",
     legal:
       "Claude y Claude Code son marcas de Anthropic PBC. Claude Island es un proyecto independiente y no está afiliado, patrocinado ni respaldado por Anthropic.",
     creator: "Creado por",
@@ -147,8 +177,13 @@ const copy = {
     releaseLabel: "Launch edition",
     releaseBody:
       "The download will unlock only after the universal package is Developer ID signed, Apple-notarized and published as an official release.",
+    betaReleaseStatus: "Public beta available",
+    betaReleaseLabel: "Testing build",
+    betaReleaseBody:
+      "You can try Claude Island before the stable launch. This beta is universal, but it is not yet Developer ID signed or Apple-notarized.",
     releaseUnavailable: "Download in preparation",
     releaseAvailable: "Download for macOS",
+    betaAvailable: "Download beta 0.1.0",
     source: "View source code",
     proof: "Real product / real capture",
     sectionFeatures: "All your work, at a glance",
@@ -219,6 +254,10 @@ const copy = {
     downloadTitle: "One download. Two architectures.",
     downloadBody:
       "The official package will be universal for Apple Silicon and Intel. A checksum, dependency inventory and signed update feed will ship beside the notarized ZIP.",
+    betaDownloadEyebrow: "Public beta",
+    betaDownloadTitle: "Try it on your Mac today.",
+    betaDownloadBody:
+      "Download the 0.1.0 beta for Apple Silicon or Intel. It does not require the App Store and contains the real app we are preparing for the stable launch.",
     platformPrimary: "Native on Apple Silicon",
     platformSecondary: "Also compatible with Intel Macs",
     safeguards: [
@@ -227,7 +266,18 @@ const copy = {
       "Apple Silicon + Intel",
       "Signed Sparkle updates",
     ],
+    betaSafeguards: [
+      "Apple Silicon + Intel",
+      "Public source code",
+      "No backend or telemetry",
+      "Signing and notarization pending",
+    ],
     requirement: "Requires macOS 14 or later and Claude Code installed.",
+    betaRequirement: "Beta 0.1.0 · Requires macOS 14 or later and Claude Code installed.",
+    betaWarningTitle: "Unnotarized beta",
+    betaWarning:
+      "macOS may block the first launch. Try opening the app, then use System Settings → Privacy & Security → Open Anyway. Do not disable Gatekeeper.",
+    betaOpenGuide: "View Apple's official instructions",
     legal:
       "Claude and Claude Code are trademarks of Anthropic PBC. Claude Island is an independent project and is not affiliated with, sponsored by, or endorsed by Anthropic.",
     creator: "Created by",
@@ -242,32 +292,34 @@ function useOfficialRelease() {
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch(RELEASE_API, {
-      headers: { Accept: "application/vnd.github+json" },
-      signal: controller.signal,
-    })
-      .then((response) => {
-        if (response.status === 404) return null;
-        if (!response.ok) throw new Error(`GitHub returned ${response.status}`);
-        return response.json();
-      })
-      .then((release) => {
-        const zip = release?.assets?.find(
-          (asset) =>
-            asset.name.endsWith(".zip") &&
-            asset.name.toLowerCase().includes("claude"),
-        );
-        setStatus(
-          release && !release.draft && zip
-            ? { state: "available", url: zip.browser_download_url }
-            : { state: "upcoming", url: null },
-        );
-      })
-      .catch((error) => {
-        if (error.name !== "AbortError") {
-          setStatus({ state: "upcoming", url: null });
+    async function findRelease() {
+      try {
+        for (const candidate of RELEASE_CANDIDATES) {
+          const response = await fetch(candidate.url, {
+            headers: { Accept: "application/vnd.github+json" },
+            signal: controller.signal,
+          });
+          if (response.status === 404) continue;
+          if (!response.ok) throw new Error(`GitHub returned ${response.status}`);
+
+          const release = await response.json();
+          const zip = release?.assets?.find(
+            (asset) =>
+              asset.name.endsWith(".zip") &&
+              asset.name.toLowerCase().includes("claude"),
+          );
+          if (release && !release.draft && zip) {
+            setStatus({ state: candidate.state, url: zip.browser_download_url });
+            return;
+          }
         }
-      });
+        setStatus({ state: "upcoming", url: null });
+      } catch (error) {
+        if (error.name !== "AbortError") setStatus({ state: "upcoming", url: null });
+      }
+    }
+
+    findRelease();
 
     return () => controller.abort();
   }, []);
@@ -276,13 +328,13 @@ function useOfficialRelease() {
 }
 
 function ReleaseButton({ release, t, compact = false }) {
-  if (release.state === "available") {
+  if (release.state === "available" || release.state === "beta") {
     return (
       <a
         className={`button button-primary${compact ? " button-compact" : ""}`}
         href={release.url}
       >
-        {t.releaseAvailable}
+        {release.state === "beta" ? t.betaAvailable : t.releaseAvailable}
         <ArrowDown size={18} weight="bold" aria-hidden="true" />
       </a>
     );
@@ -310,6 +362,7 @@ export function App() {
   });
   const release = useOfficialRelease();
   const t = useMemo(() => copy[language], [language]);
+  const isStableRelease = release.state === "available";
 
   useEffect(() => {
     window.localStorage.setItem("claude-island-language", language);
@@ -406,15 +459,22 @@ export function App() {
               </div>
             </div>
 
-            <div className="version-panel panel-cell" aria-label="Version 1.0.0">
-              <span className="version-kicker">{t.releaseStatus}</span>
-              <strong>1.0.0</strong>
+            <div
+              className="version-panel panel-cell"
+              aria-label={isStableRelease ? "Version 1.0.0" : "Version 0.1 beta"}
+            >
+              <span className="version-kicker">
+                {isStableRelease ? t.releaseStatus : t.betaReleaseStatus}
+              </span>
+              <strong>{isStableRelease ? "1.0.0" : "0.1 β"}</strong>
             </div>
 
             <div className="release-panel panel-cell">
               <div>
-                <Eyebrow>{t.releaseLabel}</Eyebrow>
-                <p>{t.releaseBody}</p>
+                <Eyebrow>
+                  {isStableRelease ? t.releaseLabel : t.betaReleaseLabel}
+                </Eyebrow>
+                <p>{isStableRelease ? t.releaseBody : t.betaReleaseBody}</p>
               </div>
               <div className="release-actions">
                 <ReleaseButton release={release} t={t} compact />
@@ -531,9 +591,11 @@ export function App() {
 
           <section className="download-section" id="download">
             <div className="download-copy">
-              <Eyebrow light>04 / {t.downloadEyebrow}</Eyebrow>
-              <h2>{t.downloadTitle}</h2>
-              <p>{t.downloadBody}</p>
+              <Eyebrow light>
+                04 / {isStableRelease ? t.downloadEyebrow : t.betaDownloadEyebrow}
+              </Eyebrow>
+              <h2>{isStableRelease ? t.downloadTitle : t.betaDownloadTitle}</h2>
+              <p>{isStableRelease ? t.downloadBody : t.betaDownloadBody}</p>
               <div className="platform-badge">
                 <Cpu size={23} weight="bold" aria-hidden="true" />
                 <span>
@@ -548,7 +610,19 @@ export function App() {
                   <ArrowUpRight size={18} weight="bold" aria-hidden="true" />
                 </a>
               </div>
-              <p className="requirement">{t.requirement}</p>
+              {release.state === "beta" && (
+                <aside className="beta-notice" aria-label={t.betaWarningTitle}>
+                  <strong>{t.betaWarningTitle}</strong>
+                  <p>{t.betaWarning}</p>
+                  <a href={APPLE_OPEN_GUIDE} target="_blank" rel="noreferrer">
+                    {t.betaOpenGuide}
+                    <ArrowUpRight size={15} weight="bold" aria-hidden="true" />
+                  </a>
+                </aside>
+              )}
+              <p className="requirement">
+                {isStableRelease ? t.requirement : t.betaRequirement}
+              </p>
             </div>
 
             <div className="download-mascot" aria-hidden="true">
@@ -556,7 +630,7 @@ export function App() {
             </div>
 
             <ul className="safeguards">
-              {t.safeguards.map((item) => (
+              {(isStableRelease ? t.safeguards : t.betaSafeguards).map((item) => (
                 <li key={item}>
                   <Check size={18} weight="bold" aria-hidden="true" />
                   {item}

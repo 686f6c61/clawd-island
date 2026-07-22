@@ -6,6 +6,8 @@ the project uses semantic version tags for public releases.
 
 ## [Unreleased]
 
+## [0.1.0-beta.1] - 2026-07-22
+
 ### Added
 
 - Native notch and top-edge Island for Claude Code activity.
@@ -24,11 +26,12 @@ the project uses semantic version tags for public releases.
 ### Security
 
 - Added mutual HMAC authentication, freshness checks, replay rejection and
-  signed responses for the local hook bridge before the first public release.
+  signed responses for the local hook bridge before the public beta.
 - Added bounded request parsing, private support-directory permissions and
   helper integrity verification.
 - Added mandatory Developer ID signing, Hardened Runtime, notarization,
   stapling, Gatekeeper assessment and signed-feed verification to the public
   release gate.
 
-[Unreleased]: https://github.com/686f6c61/clawd-island/commits/main
+[Unreleased]: https://github.com/686f6c61/clawd-island/compare/v0.1.0-beta.1...HEAD
+[0.1.0-beta.1]: https://github.com/686f6c61/clawd-island/releases/tag/v0.1.0-beta.1

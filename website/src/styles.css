@@ -874,6 +874,43 @@ button {
   margin-top: 20px;
 }
 
+.beta-notice {
+  max-width: 700px;
+  margin-top: 24px;
+  padding: 16px 18px;
+  color: var(--white);
+  background: rgba(232, 142, 113, 0.1);
+  border: 1px solid var(--clawd-light);
+}
+
+.beta-notice strong {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--clawd-light);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.beta-notice p {
+  margin: 0;
+  color: #d0c8c0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.beta-notice a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .download-copy .requirement {
   margin-top: 26px;
   font-size: 11px;
