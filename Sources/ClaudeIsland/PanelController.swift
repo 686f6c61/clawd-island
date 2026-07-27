@@ -54,8 +54,10 @@ final class PanelController {
             forName: NSApplication.didChangeScreenParametersNotification,
             object: nil,
             queue: .main
-        ) { [weak self] _ in
-            self?.screenConfigurationChanged()
+        ) { [weak self] (_: Notification) in
+            Task { @MainActor in
+                self?.screenConfigurationChanged()
+            }
         }
     }
 
