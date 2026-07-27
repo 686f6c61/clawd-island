@@ -22,7 +22,6 @@ the project uses semantic version tags for public releases.
 - Certificate pinning (SPKI SHA-256) for the Anthropic usage API endpoint.
 - Secure deletion of the bridge token file (random data overwrite before removal).
 - Directory permission hardening (`0o700`) on `~/.claude/` settings directory.
-- Dependabot configuration for automated SwiftPM and GitHub Actions dependency updates.
 - Shared `NotchEnvironment` observable object for consistent notch geometry across views.
 - Throttle (2s) on recent-session writes to UserDefaults to reduce I/O during busy sessions.
 - `IslandPalette` shared color palette, eliminating the duplicate `MenuPalette`.
