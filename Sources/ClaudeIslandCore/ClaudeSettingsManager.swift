@@ -97,6 +97,7 @@ public enum ClaudeSettingsManager {
         let fileManager = FileManager.default
         let claudeDirectory = homeDirectory.appendingPathComponent(".claude", isDirectory: true)
         try fileManager.createDirectory(at: claudeDirectory, withIntermediateDirectories: true)
+        try fileManager.setAttributes([.posixPermissions: 0o700], ofItemAtPath: claudeDirectory.path)
 
         var changedFiles: [URL] = []
         var backupFiles: [URL] = []
