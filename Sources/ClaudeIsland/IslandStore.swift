@@ -130,6 +130,8 @@ final class IslandStore: ObservableObject {
     private let recentSessionRetention: TimeInterval = 30 * 24 * 60 * 60
     private let usageSnapshotKey = "cachedClaudeUsageSnapshot"
     private let usageUpdatedKey = "cachedClaudeUsageUpdatedAt"
+    private var lastRecentSessionWrite: Date?
+    private let recentSessionThrottleInterval: TimeInterval = 2.0
 
     private init() {
         if let data = UserDefaults.standard.data(forKey: recentSessionsKey),
@@ -296,7 +298,12 @@ final class IslandStore: ObservableObject {
             agent.lastUpdated = Date()
             session.agents[agentID] = agent
             if session.agents.count > 20 {
-                let retained = session.agents.values.sorted { $0.lastUpdated > $1.lastUpdated }.prefix(20)
+                let busyStatuses: Set<SessionStatus> = [.running, .waiting]
+                let busy = session.agents.values.filter { busyStatuses.contains($0.status) }
+                let idle = session.agents.values.filter { !busyStatuses.contains($0.status) }
+                    .sorted { $0.lastUpdated > $1.lastUpdated }
+                    .prefix(max(0, 20 - busy.count))
+                let retained = busy + idle
                 session.agents = Dictionary(uniqueKeysWithValues: retained.map { ($0.id, $0) })
             }
         }
@@ -520,7 +527,7 @@ final class IslandStore: ObservableObject {
     }
 
     func reinstallHooks() {
-        guard let helper = helperExecutableURL() else {
+        guard let helper = HookBridgeCredential.helperExecutableURL() else {
             lastError = "ClaudeIslandHook is missing from the app bundle."
             return
         }
@@ -803,7 +810,13 @@ final class IslandStore: ObservableObject {
 
     private func updateRecentSession(from session: SessionRecord) {
         guard session.id != "unknown", !session.cwd.isEmpty else { return }
-        let cutoff = Date().addingTimeInterval(-recentSessionRetention)
+        // Throttle writes to UserDefaults to avoid excessive I/O during busy Claude sessions
+        let now = Date()
+        if let last = lastRecentSessionWrite, now.timeIntervalSince(last) < recentSessionThrottleInterval {
+            return
+        }
+        lastRecentSessionWrite = now
+        let cutoff = now.addingTimeInterval(-recentSessionRetention)
         recentSessions.removeAll { $0.lastUpdated < cutoff }
         let snapshot = RecentClaudeSession(
             id: session.id,
@@ -820,25 +833,19 @@ final class IslandStore: ObservableObject {
     }
 
     private func launchSession(in folder: String, resumeID: String?) {
-        do {
-            try TerminalActivator.launchClaude(
-                at: folder,
-                resumeSessionID: resumeID,
-                preference: settings.preferredTerminal
-            )
-            lastError = nil
-            setupStatus = resumeID == nil ? "Opening a new Claude session" : "Resuming Claude session"
-        } catch {
-            lastError = error.localizedDescription
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            do {
+                try await TerminalActivator.launchClaude(
+                    at: folder,
+                    resumeSessionID: resumeID,
+                    preference: self.settings.preferredTerminal
+                )
+                self.lastError = nil
+                self.setupStatus = resumeID == nil ? "Opening a new Claude session" : "Resuming Claude session"
+            } catch {
+                self.lastError = error.localizedDescription
+            }
         }
-    }
-
-    private func helperExecutableURL() -> URL? {
-        if let bundled = Bundle.main.url(forResource: "ClaudeIslandHook", withExtension: nil) {
-            return bundled
-        }
-        let executable = URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL
-        let sibling = executable.deletingLastPathComponent().appendingPathComponent("ClaudeIslandHook")
-        return FileManager.default.isExecutableFile(atPath: sibling.path) ? sibling : nil
     }
 }

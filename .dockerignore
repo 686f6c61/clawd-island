@@ -1,0 +1,12 @@
+**
+!Dockerfile.site
+!website/
+!website/index.html
+!website/package.json
+!website/package-lock.json
+!website/vite.config.mjs
+!website/nginx.conf
+!website/src/
+!website/src/**
+!website/public/
+!website/public/**

@@ -1,5 +1,6 @@
 import AppKit
 import ClaudeIslandCore
+import Combine
 import SwiftUI
 
 @main
@@ -102,7 +103,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func installHooks() {
-        guard let helperSource = helperExecutableURL() else {
+        guard let helperSource = HookBridgeCredential.helperExecutableURL() else {
             store.setSetupError(SetupError.helperMissing)
             return
         }
@@ -113,20 +114,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             store.setSetupError(error)
         }
     }
+}
 
-    private func helperExecutableURL() -> URL? {
-        if let bundled = Bundle.main.url(forResource: "ClaudeIslandHook", withExtension: nil) {
-            return bundled
-        }
-        let executable = URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL
-        let sibling = executable.deletingLastPathComponent().appendingPathComponent("ClaudeIslandHook")
-        return FileManager.default.isExecutableFile(atPath: sibling.path) ? sibling : nil
-    }
-
-    private enum SetupError: LocalizedError {
-        case helperMissing
-        var errorDescription: String? { "ClaudeIslandHook is missing from the app bundle" }
-    }
+private enum SetupError: LocalizedError {
+    case helperMissing
+    var errorDescription: String? { "ClaudeIslandHook is missing from the app bundle" }
 }
 
 @MainActor
@@ -170,7 +162,14 @@ private final class SettingsWindowController: NSWindowController {
         settingsToolbar.selectedItemIdentifier = .init(selection.pane.rawValue)
         window.toolbar = settingsToolbar
         window.toolbarStyle = .preference
+        // Observe programmatic pane changes to keep the window title in sync
+        selection.$pane
+            .map { "\($0.title) — Claude Island" }
+            .sink { [weak window] in window?.title = $0 }
+            .store(in: &paneCancellables)
     }
+
+    private var paneCancellables = Set<AnyCancellable>()
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
@@ -329,10 +328,10 @@ private struct MenuBarContent: View {
                     .lineLimit(1)
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(MenuPalette.status(store.activeSession?.status ?? .idle))
+                        .fill(IslandPalette.statusColor(store.activeSession?.status ?? .idle))
                         .frame(width: 7, height: 7)
                     Text(store.activeSession?.status.label ?? "Ready")
-                        .foregroundStyle(MenuPalette.status(store.activeSession?.status ?? .idle))
+                        .foregroundStyle(IslandPalette.statusColor(store.activeSession?.status ?? .idle))
                     if let session = store.activeSession {
                         Rectangle()
                             .fill(Color.white.opacity(0.14))
@@ -352,7 +351,7 @@ private struct MenuBarContent: View {
 
     private var primaryActions: some View {
         HStack(spacing: 4) {
-            MenuPrimaryAction(title: "Show Island", systemImage: "rectangle.topthird.inset", tint: MenuPalette.amber, action: showIsland)
+            MenuPrimaryAction(title: "Show Island", systemImage: "rectangle.topthird.inset", tint: IslandPalette.amber, action: showIsland)
                 .keyboardShortcut("i")
             MenuPrimaryAction(title: "New Session", systemImage: "plus.app", action: store.startNewSession)
                 .keyboardShortcut("n")
@@ -470,7 +469,7 @@ private struct MenuBarContent: View {
                 MenuUtilityLabel(
                     title: updates.phase.hasUpdate ? "Update" : "Updates",
                     systemImage: updates.phase.hasUpdate ? "arrow.down.circle.fill" : "arrow.down.circle",
-                    tint: updates.phase.hasUpdate ? MenuPalette.amber : nil
+                    tint: updates.phase.hasUpdate ? IslandPalette.amber : nil
                 )
             }
             .buttonStyle(.plain)
@@ -481,12 +480,12 @@ private struct MenuBarContent: View {
     private var footer: some View {
         HStack(spacing: 7) {
             Circle()
-                .fill(bridgeReady ? MenuPalette.green : MenuPalette.amber)
+                .fill(bridgeReady ? IslandPalette.green : IslandPalette.amber)
                 .frame(width: 7, height: 7)
             Text("Bridge")
                 .foregroundStyle(Color.white.opacity(0.45))
             Text(bridgeReady ? "Connected" : "Starting")
-                .foregroundStyle(bridgeReady ? MenuPalette.green : MenuPalette.amber)
+                .foregroundStyle(bridgeReady ? IslandPalette.green : IslandPalette.amber)
             Spacer()
             Button("Quit") { NSApplication.shared.terminate(nil) }
                 .buttonStyle(.plain)
@@ -498,21 +497,6 @@ private struct MenuBarContent: View {
 
     private var bridgeReady: Bool {
         store.serverStatus == "Local bridge ready"
-    }
-}
-
-private enum MenuPalette {
-    static let amber = Color(red: 0.98, green: 0.61, blue: 0.22)
-    static let green = Color(red: 0.35, green: 0.78, blue: 0.50)
-    static let red = Color(red: 0.92, green: 0.40, blue: 0.36)
-
-    static func status(_ status: SessionStatus) -> Color {
-        switch status {
-        case .running, .waiting: amber
-        case .completed: green
-        case .failed: red
-        case .idle: Color.white.opacity(0.32)
-        }
     }
 }
 
@@ -546,7 +530,7 @@ private struct MenuPrimaryAction: View {
             .frame(height: 57)
             .contentShape(Rectangle())
         }
-        .buttonStyle(MenuActionButtonStyle(emphasized: tint == MenuPalette.amber))
+        .buttonStyle(MenuActionButtonStyle(emphasized: tint == IslandPalette.amber))
     }
 }
 
@@ -639,7 +623,7 @@ private struct MenuUsageSummary: View {
         HStack(spacing: 4) {
             Text(label).foregroundStyle(Color.white.opacity(0.34))
             Text("\(Int(value.rounded()))%")
-                .foregroundStyle(value >= 85 ? MenuPalette.red : (value >= 60 ? MenuPalette.amber : MenuPalette.green))
+                .foregroundStyle(value >= 85 ? IslandPalette.red : (value >= 60 ? IslandPalette.amber : IslandPalette.green))
         }
     }
 }
@@ -650,7 +634,7 @@ private struct MenuSessionSummary: View {
     var body: some View {
         HStack(spacing: 9) {
             Circle()
-                .fill(MenuPalette.status(session?.status ?? .idle))
+                .fill(IslandPalette.statusColor(session?.status ?? .idle))
                 .frame(width: 8, height: 8)
             VStack(alignment: .leading, spacing: 3) {
                 Text(session?.projectName ?? "No active session")
@@ -666,7 +650,7 @@ private struct MenuSessionSummary: View {
             if let session, session.runningAgentCount > 0 {
                 Label("\(session.runningAgentCount)", systemImage: "person.2.fill")
                     .font(.system(size: 9.5, weight: .semibold))
-                    .foregroundStyle(MenuPalette.amber)
+                    .foregroundStyle(IslandPalette.amber)
             }
             if session != nil {
                 Image(systemName: "chevron.right")
@@ -720,9 +704,9 @@ private struct MenuNotice: View {
             }
         }
         .font(.system(size: 10.5, weight: .medium))
-        .foregroundStyle(MenuPalette.amber)
+        .foregroundStyle(IslandPalette.amber)
         .padding(.horizontal, 10)
         .frame(minHeight: 34)
-        .background(MenuPalette.amber.opacity(0.075), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(IslandPalette.amber.opacity(0.075), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 }
