@@ -18,6 +18,10 @@ const RELEASE_CANDIDATES = [
   },
   {
     state: "beta",
+    url: "https://api.github.com/repos/686f6c61/clawd-island/releases/tags/v0.2.0",
+  },
+  {
+    state: "beta",
     url: "https://api.github.com/repos/686f6c61/clawd-island/releases/tags/v0.1.0-beta.1",
   },
 ];
@@ -58,7 +62,7 @@ const copy = {
       "Puedes probar Claude Island antes del lanzamiento estable. Esta beta es universal, pero todavía no está firmada con Developer ID ni notarizada por Apple.",
     releaseUnavailable: "Descarga en preparación",
     releaseAvailable: "Descargar para macOS",
-    betaAvailable: "Descargar beta 0.1.0",
+    betaAvailable: "Descargar beta 0.2.0",
     source: "Ver código fuente",
     proof: "Producto real / captura real",
     sectionFeatures: "Todo tu trabajo, a la vista",
@@ -123,6 +127,17 @@ const copy = {
           "Feed de actualizaciones firmado con Sparkle.",
         ],
       },
+      {
+        label: "0.2.0",
+        items: [
+          "Certificate pinning para la API de uso de Anthropic.",
+          "Borrado seguro del token y endurecimiento de permisos.",
+          "Corregido crash cuando no hay pantalla disponible.",
+          "AppleScript ya no bloquea el hilo principal.",
+          "Accesibilidad VoiceOver restaurada.",
+          "Los ajustes ya no destruyen el estado de SwiftUI.",
+        ],
+      },
     ],
     fullChangelog: "Ver changelog completo",
     downloadEyebrow: "Release verificable",
@@ -132,7 +147,7 @@ const copy = {
     betaDownloadEyebrow: "Beta pública",
     betaDownloadTitle: "Pruébala ya en tu Mac.",
     betaDownloadBody:
-      "Descarga la beta 0.1.0 para Apple Silicon o Intel. No necesita la App Store y contiene la aplicación real que estamos preparando para el lanzamiento estable.",
+      "Descarga la beta 0.2.0 para Apple Silicon o Intel. No necesita la App Store y contiene la aplicación real que estamos preparando para el lanzamiento estable.",
     platformPrimary: "Nativa para Apple Silicon",
     platformSecondary: "También compatible con Mac Intel",
     safeguards: [
@@ -248,6 +263,17 @@ const copy = {
           "Signed Sparkle update feed.",
         ],
       },
+      {
+        label: "0.2.0",
+        items: [
+          "Certificate pinning for the Anthropic usage API.",
+          "Secure token deletion and directory permission hardening.",
+          "Crash fix when no display is available.",
+          "AppleScript no longer blocks the main thread.",
+          "VoiceOver accessibility restored.",
+          "Settings no longer destroy SwiftUI state.",
+        ],
+      },
     ],
     fullChangelog: "View full changelog",
     downloadEyebrow: "Verifiable release",
@@ -257,7 +283,7 @@ const copy = {
     betaDownloadEyebrow: "Public beta",
     betaDownloadTitle: "Try it on your Mac today.",
     betaDownloadBody:
-      "Download the 0.1.0 beta for Apple Silicon or Intel. It does not require the App Store and contains the real app we are preparing for the stable launch.",
+      "Download the 0.2.0 beta for Apple Silicon or Intel. It does not require the App Store and contains the real app we are preparing for the stable launch.",
     platformPrimary: "Native on Apple Silicon",
     platformSecondary: "Also compatible with Intel Macs",
     safeguards: [
@@ -273,7 +299,7 @@ const copy = {
       "Signing and notarization pending",
     ],
     requirement: "Requires macOS 14 or later and Claude Code installed.",
-    betaRequirement: "Beta 0.1.0 · Requires macOS 14 or later and Claude Code installed.",
+    betaRequirement: "Beta 0.2.0 · Requires macOS 14 or later and Claude Code installed.",
     betaWarningTitle: "Unnotarized beta",
     betaWarning:
       "macOS may block the first launch. Try opening the app, then use System Settings → Privacy & Security → Open Anyway. Do not disable Gatekeeper.",
