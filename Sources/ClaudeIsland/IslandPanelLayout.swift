@@ -1,43 +1,14 @@
 import CoreGraphics
 
 enum IslandPanelLayout {
-    private static let topInsetHardware: CGFloat = 72
-    private static let topInsetSoftware: CGFloat = 44
-    private static let headerHeight: CGFloat = 47
-    private static let usageHeight: CGFloat = 46
-    private static let rowHeight: CGFloat = 28
-    private static let activityPadding: CGFloat = 14
-    private static let agentHeight: CGFloat = 23
-    private static let agentBottomPadding: CGFloat = 7
-    private static let actionHeightPermission: CGFloat = 92
-    private static let actionHeightDefault: CGFloat = 56
-    private static let bottomInset: CGFloat = 14
-    private static let maxActivityRows = 3
-    private static let multiSessionHeight: CGFloat = 158
-    private static let dormantNotchExtra: CGFloat = 84
-    private static let dormantMinWidth: CGFloat = 84
-    private static let dormantMinHeightHardware: CGFloat = 52
-    private static let dormantMinHeightSoftware: CGFloat = 44
-    private static let dormantNotchVerticalExtra: CGFloat = 16
-    private static let compactMinWidthMinimal: CGFloat = 340
-    private static let compactMinWidthInformative: CGFloat = 440
-    private static let compactWidthMinimal: CGFloat = 176
-    private static let compactWidthInformative: CGFloat = 320
-    private static let compactHeight: CGFloat = 58
-    private static let compactNotchVerticalExtra: CGFloat = 20
-    private static let hiddenMinWidth: CGFloat = 180
-    private static let hiddenMinHeightHardware: CGFloat = 40
-    private static let hiddenNotchHorizontalExtra: CGFloat = 48
-    private static let hiddenNotchVerticalExtra: CGFloat = 10
-
     static func manuallyHiddenSize(
         hasHardwareNotch: Bool,
         notchWidth: CGFloat,
         notchHeight: CGFloat
     ) -> CGSize {
         CGSize(
-            width: hasHardwareNotch ? max(notchWidth + hiddenNotchHorizontalExtra, 208) : hiddenMinWidth,
-            height: hasHardwareNotch ? max(notchHeight + hiddenNotchVerticalExtra, hiddenMinHeightHardware) : 18
+            width: hasHardwareNotch ? max(notchWidth + 48, 208) : 180,
+            height: hasHardwareNotch ? max(notchHeight + 10, 40) : 18
         )
     }
 
@@ -47,8 +18,8 @@ enum IslandPanelLayout {
         notchHeight: CGFloat
     ) -> CGSize {
         CGSize(
-            width: hasHardwareNotch ? notchWidth + dormantNotchExtra : dormantMinWidth,
-            height: hasHardwareNotch ? max(dormantMinHeightHardware, notchHeight + dormantNotchVerticalExtra) : dormantMinHeightSoftware
+            width: hasHardwareNotch ? notchWidth + 84 : 84,
+            height: hasHardwareNotch ? max(52, notchHeight + 16) : 44
         )
     }
 
@@ -61,11 +32,11 @@ enum IslandPanelLayout {
         if hasHardwareNotch {
             let wingWidth: CGFloat = style == .minimal ? 122 : 250
             return CGSize(
-                width: max(notchWidth + wingWidth, style == .minimal ? compactMinWidthMinimal : compactMinWidthInformative),
-                height: max(compactHeight, notchHeight + compactNotchVerticalExtra)
+                width: max(notchWidth + wingWidth, style == .minimal ? 340 : 440),
+                height: max(58, notchHeight + 20)
             )
         }
-        return CGSize(width: style == .minimal ? compactWidthMinimal : compactWidthInformative, height: compactHeight)
+        return CGSize(width: style == .minimal ? 176 : 320, height: 58)
     }
 
     static func expandedSize(
@@ -79,16 +50,17 @@ enum IslandPanelLayout {
         hasQuestion: Bool,
         showsUsage: Bool
     ) -> CGSize {
-        let topInset = hasHardwareNotch ? max(topInsetHardware, notchHeight + 46) : topInsetSoftware
-        let usageH = showsUsage ? usageHeight : 0
-        let rows = max(1, min(maxActivityRows, activityCount))
-        let activityH = CGFloat(rows * Int(rowHeight) + Int(activityPadding))
-        let agentH: CGFloat = agentCount > 0 ? agentHeight + agentBottomPadding : 0
-        let workspaceH = sessionCount > 1 ? multiSessionHeight : activityH + agentH
-        let actionH: CGFloat = hasQuestion ? actionHeightPermission : actionHeightDefault
+        let topInset = hasHardwareNotch ? max(72, notchHeight + 46) : 44
+        let headerHeight: CGFloat = 47
+        let usageHeight: CGFloat = showsUsage ? 46 : 0
+        let rows = max(1, min(3, activityCount))
+        let activityHeight = CGFloat(rows * 28 + 14)
+        let workspaceHeight = sessionCount > 1 ? 158 : activityHeight + (agentCount > 0 ? 23 : 0)
+        let actionHeight: CGFloat = hasQuestion ? 92 : 56
+        let bottomInset: CGFloat = 14
         return CGSize(
             width: min(preferredWidth, maximumWidth),
-            height: topInset + headerHeight + usageH + workspaceH + actionH + bottomInset
+            height: topInset + headerHeight + usageHeight + workspaceHeight + actionHeight + bottomInset
         )
     }
 }

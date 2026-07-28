@@ -704,14 +704,6 @@ private struct AppearanceIslandPreview: View {
             let verticalScale = (proxy.size.height - 24) / panelSize.height
             let scale = min(1, horizontalScale, verticalScale)
 
-            let notchEnv: NotchEnvironment = {
-                let env = NotchEnvironment()
-                env.notchWidth = store.displayNotchWidth
-                env.notchHeight = store.displayNotchHeight
-                env.hasHardwareNotch = store.hasHardwareNotch
-                return env
-            }()
-
             ZStack(alignment: .top) {
                 LinearGradient(
                     colors: [Color(white: 0.16), Color(white: 0.095)],
@@ -723,7 +715,9 @@ private struct AppearanceIslandPreview: View {
                     IslandRootView(
                         store: store,
                         settings: settings,
-                        notchEnv: notchEnv,
+                        notchWidth: store.displayNotchWidth,
+                        notchHeight: store.displayNotchHeight,
+                        hasHardwareNotch: store.hasHardwareNotch,
                         previewPresentation: mode.presentation
                     )
                     .frame(width: panelSize.width, height: panelSize.height)

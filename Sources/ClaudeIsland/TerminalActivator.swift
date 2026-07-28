@@ -48,7 +48,7 @@ enum TerminalActivator {
         at directory: String,
         resumeSessionID: String? = nil,
         preference: TerminalPreference = AppSettings.shared.preferredTerminal
-    ) async throws {
+    ) throws {
         let folder = URL(fileURLWithPath: directory).standardizedFileURL.path
         guard FileManager.default.fileExists(atPath: folder) else {
             throw TerminalLaunchError.folderMissing(folder)
@@ -69,7 +69,7 @@ enum TerminalActivator {
             )
         case .terminal:
             let command = ClaudeTerminalCommand.shellCommand(directory: folder, resumeSessionID: resumeSessionID)
-            try await runAppleScriptDetached("""
+            try runAppleScript("""
             tell application "Terminal"
                 activate
                 do script "\(appleScriptEscaped(command))"
@@ -77,7 +77,7 @@ enum TerminalActivator {
             """)
         case .iTerm:
             let command = ClaudeTerminalCommand.shellCommand(directory: folder, resumeSessionID: resumeSessionID)
-            try await runAppleScriptDetached("""
+            try runAppleScript("""
             tell application "iTerm2"
                 activate
                 create window with default profile command "\(appleScriptEscaped(command))"
@@ -87,7 +87,7 @@ enum TerminalActivator {
             try launchWarp(directory: folder, resumeSessionID: resumeSessionID)
         case .automatic:
             // resolve(preference:program:) always returns a concrete terminal.
-            try await launchClaude(at: folder, resumeSessionID: resumeSessionID, preference: .terminal)
+            try launchClaude(at: folder, resumeSessionID: resumeSessionID, preference: .terminal)
         }
     }
 
@@ -146,17 +146,13 @@ enum TerminalActivator {
         try process.run()
     }
 
-    private static func runAppleScriptDetached(_ source: String) async throws {
-        try await Task.detached(priority: .userInitiated) {
-            var error: NSDictionary?
-            guard let script = NSAppleScript(source: source) else {
-                throw TerminalLaunchError.appleScriptFailed("Invalid script")
-            }
-            script.executeAndReturnError(&error)
-            if let error {
-                throw TerminalLaunchError.appleScriptFailed(error.description)
-            }
-        }.value
+    private static func runAppleScript(_ source: String) throws {
+        var error: NSDictionary?
+        guard let script = NSAppleScript(source: source) else { throw TerminalLaunchError.appleScriptFailed("Invalid script") }
+        script.executeAndReturnError(&error)
+        if let error {
+            throw TerminalLaunchError.appleScriptFailed(error.description)
+        }
     }
 
     private static func yamlSingleQuoted(_ value: String) -> String {

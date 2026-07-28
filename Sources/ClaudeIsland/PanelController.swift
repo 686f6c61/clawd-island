@@ -4,19 +4,11 @@ import Combine
 import SwiftUI
 
 @MainActor
-final class NotchEnvironment: ObservableObject {
-    @Published var notchWidth: CGFloat = 0
-    @Published var notchHeight: CGFloat = 0
-    @Published var hasHardwareNotch = false
-}
-
-@MainActor
 final class PanelController {
     private let store: IslandStore
     private let settings: AppSettings
     private let panel: IslandPanel
     private let hostingController: NSHostingController<IslandRootView>
-    private let notchEnv: NotchEnvironment
     private var cancellables = Set<AnyCancellable>()
     private var metrics: ScreenMetrics
     private var localClickMonitor: Any?
@@ -26,15 +18,13 @@ final class PanelController {
         self.store = store
         self.settings = settings
         metrics = ScreenMetrics.current()
-        notchEnv = NotchEnvironment()
-        notchEnv.notchWidth = metrics.notchWidth
-        notchEnv.notchHeight = metrics.notchHeight
-        notchEnv.hasHardwareNotch = metrics.hasHardwareNotch
         hostingController = NSHostingController(
             rootView: IslandRootView(
                 store: store,
                 settings: settings,
-                notchEnv: notchEnv
+                notchWidth: metrics.notchWidth,
+                notchHeight: metrics.notchHeight,
+                hasHardwareNotch: metrics.hasHardwareNotch
             )
         )
         panel = IslandPanel(
@@ -54,10 +44,8 @@ final class PanelController {
             forName: NSApplication.didChangeScreenParametersNotification,
             object: nil,
             queue: .main
-        ) { [weak self] (_: Notification) in
-            Task { @MainActor in
-                self?.screenConfigurationChanged()
-            }
+        ) { [weak self] _ in
+            Task { @MainActor in self?.screenConfigurationChanged() }
         }
     }
 
@@ -118,17 +106,23 @@ final class PanelController {
             .store(in: &cancellables)
 
         settings.objectWillChange
-            .debounce(for: .milliseconds(16), scheduler: RunLoop.main)
-            .sink { [weak self] _ in self?.refreshSettings() }
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                DispatchQueue.main.async { self?.refreshSettings() }
+            }
             .store(in: &cancellables)
     }
 
     private func screenConfigurationChanged(animated: Bool = false) {
         metrics = ScreenMetrics.current()
-        notchEnv.notchWidth = metrics.notchWidth
-        notchEnv.notchHeight = metrics.notchHeight
-        notchEnv.hasHardwareNotch = metrics.hasHardwareNotch
         publishMetrics()
+        hostingController.rootView = IslandRootView(
+            store: store,
+            settings: settings,
+            notchWidth: metrics.notchWidth,
+            notchHeight: metrics.notchHeight,
+            hasHardwareNotch: metrics.hasHardwareNotch
+        )
         updateFrame(animated: animated)
     }
 
@@ -188,6 +182,13 @@ final class PanelController {
     }
 
     private func refreshSettings() {
+        hostingController.rootView = IslandRootView(
+            store: store,
+            settings: settings,
+            notchWidth: metrics.notchWidth,
+            notchHeight: metrics.notchHeight,
+            hasHardwareNotch: metrics.hasHardwareNotch
+        )
         updateFrame(animated: true)
     }
 
@@ -213,17 +214,12 @@ private struct ScreenMetrics {
     let notchHeight: CGFloat
     var hasHardwareNotch: Bool { attachment == .hardwareNotch }
 
-    /// Fallback for when no screens are available (extremely rare — display reconfiguration).
-    static func fallbackScreen() -> NSScreen {
-        NSScreen()
-    }
-
     @MainActor
     static func current() -> ScreenMetrics {
         let pointer = NSEvent.mouseLocation
         let screen = NSScreen.screens.first(where: { NSMouseInRect(pointer, $0.frame, false) })
             ?? NSScreen.main
-            ?? NSScreen.screens.first ?? ScreenMetrics.fallbackScreen()
+            ?? NSScreen.screens[0]
         let geometry = IslandDisplayGeometryResolver.resolve(
             safeAreaTop: Double(screen.safeAreaInsets.top),
             auxiliaryLeftMaxX: screen.auxiliaryTopLeftArea.map { Double($0.maxX) },

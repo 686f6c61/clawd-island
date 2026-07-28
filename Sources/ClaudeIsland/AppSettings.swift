@@ -120,7 +120,6 @@ final class AppSettings: ObservableObject {
     }
 
     private let defaults: UserDefaults
-    private var isInitializing = true
 
     @Published var preferredTerminal: TerminalPreference { didSet { save(preferredTerminal.rawValue, Key.preferredTerminal) } }
     @Published var showUsage: Bool { didSet { save(showUsage, Key.showUsage) } }
@@ -183,7 +182,6 @@ final class AppSettings: ObservableObject {
         doubleClickNotchToHide = Self.bool(defaults, Key.doubleClickNotchToHide, default: true)
         hooksEnabled = Self.bool(defaults, Key.hooksEnabled, default: true)
         launchAtLoginEnabled = SMAppService.mainApp.status == .enabled
-        isInitializing = false
     }
 
     func setLaunchAtLogin(_ enabled: Bool) {
@@ -246,7 +244,6 @@ final class AppSettings: ObservableObject {
     }
 
     private func save(_ value: Any, _ key: String) {
-        guard !isInitializing else { return }
         defaults.set(value, forKey: key)
     }
 

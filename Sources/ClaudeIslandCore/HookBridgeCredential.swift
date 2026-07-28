@@ -1,6 +1,5 @@
 import Foundation
 import Darwin
-import Security
 
 public enum HookBridgeCredential {
     public static let tokenFileName = "bridge-token"
@@ -19,15 +18,6 @@ public enum HookBridgeCredential {
     ) -> URL {
         supportDirectory(homeDirectory: homeDirectory)
             .appendingPathComponent(tokenFileName, isDirectory: false)
-    }
-
-    public static func helperExecutableURL() -> URL? {
-        if let bundled = Bundle.main.url(forResource: "ClaudeIslandHook", withExtension: nil) {
-            return bundled
-        }
-        let executable = URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL
-        let sibling = executable.deletingLastPathComponent().appendingPathComponent("ClaudeIslandHook")
-        return FileManager.default.isExecutableFile(atPath: sibling.path) ? sibling : nil
     }
 
     @discardableResult
@@ -84,19 +74,8 @@ public enum HookBridgeCredential {
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
     ) throws {
         let url = tokenURL(homeDirectory: homeDirectory)
-        let fileManager = FileManager.default
-        guard fileManager.fileExists(atPath: url.path) else { return }
-        // Secure overwrite before deletion to mitigate forensic recovery on APFS
-        let attrs = try fileManager.attributesOfItem(atPath: url.path)
-        if let size = attrs[.size] as? Int, size > 0 {
-            let overwriteSize = min(size, 4096)
-            var randomData = Data(count: overwriteSize)
-            randomData.withUnsafeMutableBytes { ptr in
-                _ = SecRandomCopyBytes(kSecRandomDefault, ptr.count, ptr.baseAddress!)
-            }
-            try randomData.write(to: url, options: .atomic)
-        }
-        try fileManager.removeItem(at: url)
+        guard FileManager.default.fileExists(atPath: url.path) else { return }
+        try FileManager.default.removeItem(at: url)
     }
 
     private static func ensurePrivateDirectory(_ url: URL, fileManager: FileManager) throws {
