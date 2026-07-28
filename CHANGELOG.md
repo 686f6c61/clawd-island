@@ -4,35 +4,7 @@ All notable user-facing changes to Claude Island are documented here. The
 format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 the project uses semantic version tags for public releases.
 
-## [0.2.0] - 2026-07-27
-
-### Fixed
-
-- Crash when no display screens are available during configuration changes.
-- Island expanded panel now correctly accounts for the agent strip bottom padding (7px missing).
-- AppleScript terminal launch no longer blocks the main thread (moved to background task).
-- Settings change no longer destroys SwiftUI state (scroll, animations) by recreating the root view.
-- VoiceOver accessibility restored for expanded island content.
-- Running or waiting agents are no longer silently dropped when trimming to the 20-agent limit.
-- Settings window title now updates correctly when pane is changed programmatically.
-- Removed redundant main-actor dispatch for screen change notifications.
-
-### Added
-
-- Certificate pinning (SPKI SHA-256) for the Anthropic usage API endpoint.
-- Secure deletion of the bridge token file (random data overwrite before removal).
-- Directory permission hardening (`0o700`) on `~/.claude/` settings directory.
-- Shared `NotchEnvironment` observable object for consistent notch geometry across views.
-- Throttle (2s) on recent-session writes to UserDefaults to reduce I/O during busy sessions.
-- `IslandPalette` shared color palette, eliminating the duplicate `MenuPalette`.
-
-### Changed
-
-- `helperExecutableURL()` consolidated into `ClaudeIslandCore.HookBridgeCredential`, removing code duplication.
-- Magic numbers in `IslandPanelLayout` replaced with named constants for clarity.
-- `AppSettings` no longer performs 21 unnecessary UserDefaults writes during initialization.
-- `objectWillChange` handler for settings now uses `debounce(for: .milliseconds(16))` to avoid stale value reads.
-- `MenuPalette` removed; all menu colours use `IslandPalette` instead.
+## [Unreleased]
 
 ## [0.1.0-beta.1] - 2026-07-22
 
@@ -61,6 +33,5 @@ the project uses semantic version tags for public releases.
   stapling, Gatekeeper assessment and signed-feed verification to the public
   release gate.
 
-[0.2.0]: https://github.com/686f6c61/clawd-island/compare/v0.1.0-beta.1...v0.2.0
-[Unreleased]: https://github.com/686f6c61/clawd-island/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/686f6c61/clawd-island/compare/v0.1.0-beta.1...HEAD
 [0.1.0-beta.1]: https://github.com/686f6c61/clawd-island/releases/tag/v0.1.0-beta.1

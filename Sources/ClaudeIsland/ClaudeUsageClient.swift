@@ -1,14 +1,7 @@
 import ClaudeIslandCore
-import CommonCrypto
 import Foundation
 import LocalAuthentication
 import Security
-
-/// SPKI SHA-256 hash for certificate pinning of api.anthropic.com.
-/// Regenerate when the certificate changes:
-///   openssl s_client -servername api.anthropic.com -connect api.anthropic.com:443 </dev/null 2>/dev/null \
-///     | openssl x509 -pubkey -noout | openssl pkey -pubin -outform DER | openssl dgst -sha256
-private let anthropicSPKIHash = "cb37cd6f56d170d17e1f516db38e35563d0c22ebb17a97562a6a8a27f6d557a5"
 
 enum ClaudeUsageClient {
     static func fetch(allowsKeychainPrompt: Bool) async throws -> ClaudeUsageSnapshot {
@@ -30,8 +23,7 @@ enum ClaudeUsageClient {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.timeoutIntervalForRequest = 15
         configuration.timeoutIntervalForResource = 20
-        let delegate = PinningDelegate()
-        let session = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
+        let session = URLSession(configuration: configuration)
         defer { session.invalidateAndCancel() }
 
         let (data, response) = try await session.data(for: request)
@@ -82,54 +74,6 @@ enum ClaudeUsageClient {
 
     private struct ClaudeOAuthCredential: Decodable {
         let accessToken: String
-    }
-}
-
-/// NSObject-based delegate for URLSession to perform certificate pinning.
-private final class PinningDelegate: NSObject, URLSessionDelegate, @unchecked Sendable {
-    func urlSession(
-        _ session: URLSession,
-        didReceive challenge: URLAuthenticationChallenge,
-        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
-    ) {
-        guard challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
-              let serverTrust = challenge.protectionSpace.serverTrust
-        else {
-            completionHandler(.performDefaultHandling, nil)
-            return
-        }
-
-        var secError: CFError?
-        guard SecTrustEvaluateWithError(serverTrust, &secError) else {
-            completionHandler(.cancelAuthenticationChallenge, nil)
-            return
-        }
-
-        guard let publicKey = SecTrustCopyKey(serverTrust) else {
-            completionHandler(.cancelAuthenticationChallenge, nil)
-            return
-        }
-
-        guard let publicKeyData = SecKeyCopyExternalRepresentation(publicKey, nil) as Data? else {
-            completionHandler(.cancelAuthenticationChallenge, nil)
-            return
-        }
-
-        var hashData = Data(count: Int(CC_SHA256_DIGEST_LENGTH))
-        hashData.withUnsafeMutableBytes { ptr in
-            guard let base = ptr.baseAddress else { return }
-            publicKeyData.withUnsafeBytes { dataPtr in
-                CC_SHA256(dataPtr.baseAddress, CC_LONG(dataPtr.count), base.assumingMemoryBound(to: UInt8.self))
-            }
-        }
-
-        let computedHash = hashData.map { String(format: "%02x", $0) }.joined()
-
-        if computedHash == anthropicSPKIHash {
-            completionHandler(.performDefaultHandling, nil)
-        } else {
-            completionHandler(.cancelAuthenticationChallenge, nil)
-        }
     }
 }
 
