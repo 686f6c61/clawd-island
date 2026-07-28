@@ -1,0 +1,52 @@
+name: Beta Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*-beta.*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: beta-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build and publish universal beta
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag belongs to main
+        run: |
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+      - name: Test
+        run: swift test
+
+      - name: Build and verify beta package
+        id: package
+        run: |
+          output_dir=$(./scripts/package-beta.sh "$GITHUB_REF_NAME")
+          echo "output_dir=$output_dir" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          output_dir="${{ steps.package.outputs.output_dir }}"
+          gh release create "$GITHUB_REF_NAME" \
+            "$output_dir"/*.zip \
+            "$output_dir/SHA256SUMS" \
+            "$output_dir"/*-swiftpm-dependencies.json \
+            --prerelease \
+            --verify-tag \
+            --title "Claude Island ${GITHUB_REF_NAME#v} — Public beta" \
+            --notes-file "$output_dir/RELEASE_NOTES.md"

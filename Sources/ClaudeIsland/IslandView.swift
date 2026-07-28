@@ -742,12 +742,14 @@ private struct UsageOverviewView: View {
                snapshot.fiveHour != nil || snapshot.sevenDay != nil {
                 if let window = snapshot.fiveHour {
                     UsageMetricView(title: "5-hour", window: window)
+                        .layoutPriority(1)
                 }
                 if snapshot.fiveHour != nil, snapshot.sevenDay != nil {
                     Divider().overlay(IslandPalette.separator).frame(height: 24)
                 }
                 if let window = snapshot.sevenDay {
                     UsageMetricView(title: "Weekly", window: window)
+                        .layoutPriority(1)
                 }
             } else {
                 VStack(alignment: .leading, spacing: 2) {
@@ -789,22 +791,35 @@ private struct UsageMetricView: View {
             HStack(spacing: 5) {
                 Text(title)
                     .foregroundStyle(Color.white.opacity(0.48))
+                    .fixedSize(horizontal: true, vertical: false)
                 Text(UsageFormat.percentage(window.utilization))
                     .foregroundStyle(UsageFormat.color(window.utilization))
+                    .fixedSize(horizontal: true, vertical: false)
                 if let resetsAt = window.resetsAt {
                     Text("· resets in \(UsageFormat.countdown(to: resetsAt))")
                         .foregroundStyle(Color.white.opacity(0.34))
+                        .fixedSize(horizontal: true, vertical: false)
                 }
             }
             .font(.system(size: 9.5, weight: .medium, design: .rounded))
-            .lineLimit(1)
 
             ProgressView(value: window.utilization, total: 100)
                 .progressViewStyle(.linear)
                 .tint(UsageFormat.color(window.utilization))
-                .frame(width: 150)
+                .frame(maxWidth: .infinity)
                 .scaleEffect(x: 1, y: 0.7, anchor: .center)
         }
+        .frame(minWidth: 170, idealWidth: 180, maxWidth: 190, alignment: .leading)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var accessibilityLabel: String {
+        var value = "\(title) usage \(UsageFormat.percentage(window.utilization))"
+        if let resetsAt = window.resetsAt {
+            value += ", resets in \(UsageFormat.countdown(to: resetsAt))"
+        }
+        return value
     }
 }
 

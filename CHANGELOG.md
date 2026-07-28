@@ -6,6 +6,8 @@ the project uses semantic version tags for public releases.
 
 ## [Unreleased]
 
+## [0.2.1-beta.1] - 2026-07-28
+
 ### Fixed
 
 - Display reconfiguration no longer creates an invalid fallback screen; the
@@ -21,6 +23,8 @@ the project uses semantic version tags for public releases.
 - Settings window titles stay in sync with programmatic pane changes.
 - Expanded controls and the hidden Island expose usable default VoiceOver
   actions.
+- Claude usage reset countdowns retain enough width to show the complete value
+  instead of truncating it with an ellipsis.
 
 ### Changed
 
@@ -32,6 +36,14 @@ the project uses semantic version tags for public releases.
   coalesced before recalculating the frame.
 - Added focused app-level tests for display layout, agent retention, concurrent
   session history and asynchronous terminal activation.
+
+### Release notes
+
+- Replaces the withdrawn 0.2.0 testing build with a clean reimplementation
+  based on the stable 0.1.0 application.
+- Distributed as an ad-hoc signed universal beta for Apple Silicon and Intel.
+  Developer ID signing and Apple notarization remain required for a stable
+  release.
 
 ## [0.1.0-beta.1] - 2026-07-22
 
@@ -60,5 +72,6 @@ the project uses semantic version tags for public releases.
   stapling, Gatekeeper assessment and signed-feed verification to the public
   release gate.
 
-[Unreleased]: https://github.com/686f6c61/clawd-island/compare/v0.1.0-beta.1...HEAD
+[Unreleased]: https://github.com/686f6c61/clawd-island/compare/v0.2.1-beta.1...HEAD
+[0.2.1-beta.1]: https://github.com/686f6c61/clawd-island/compare/v0.2.0...v0.2.1-beta.1
 [0.1.0-beta.1]: https://github.com/686f6c61/clawd-island/releases/tag/v0.1.0-beta.1
