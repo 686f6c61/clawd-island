@@ -20,6 +20,27 @@ public enum HookBridgeCredential {
             .appendingPathComponent(tokenFileName, isDirectory: false)
     }
 
+    public static func helperExecutableURL(
+        bundledHelperURL: URL? = Bundle.main.url(
+            forResource: "ClaudeIslandHook",
+            withExtension: nil
+        ),
+        executableURL: URL = URL(
+            fileURLWithPath: CommandLine.arguments[0]
+        ).standardizedFileURL,
+        fileManager: FileManager = .default
+    ) -> URL? {
+        if let bundledHelperURL,
+           fileManager.isExecutableFile(atPath: bundledHelperURL.path) {
+            return bundledHelperURL
+        }
+
+        let sibling = executableURL
+            .deletingLastPathComponent()
+            .appendingPathComponent("ClaudeIslandHook", isDirectory: false)
+        return fileManager.isExecutableFile(atPath: sibling.path) ? sibling : nil
+    }
+
     @discardableResult
     public static func ensureToken(
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser

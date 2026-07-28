@@ -9,6 +9,23 @@ enum TerminalActivator {
         let icon: NSImage?
     }
 
+    struct AppleScriptRunner: Sendable {
+        let execute: @Sendable (String) async throws -> Void
+
+        static let live = AppleScriptRunner { source in
+            try await Task.detached(priority: .userInitiated) {
+                var error: NSDictionary?
+                guard let script = NSAppleScript(source: source) else {
+                    throw TerminalLaunchError.appleScriptFailed("Invalid script")
+                }
+                script.executeAndReturnError(&error)
+                if let error {
+                    throw TerminalLaunchError.appleScriptFailed(error.description)
+                }
+            }.value
+        }
+    }
+
     static func identity(
         program: String?,
         preference: TerminalPreference = AppSettings.shared.preferredTerminal
@@ -47,8 +64,9 @@ enum TerminalActivator {
     static func launchClaude(
         at directory: String,
         resumeSessionID: String? = nil,
-        preference: TerminalPreference = AppSettings.shared.preferredTerminal
-    ) throws {
+        preference: TerminalPreference = AppSettings.shared.preferredTerminal,
+        appleScriptRunner: AppleScriptRunner = .live
+    ) async throws {
         let folder = URL(fileURLWithPath: directory).standardizedFileURL.path
         guard FileManager.default.fileExists(atPath: folder) else {
             throw TerminalLaunchError.folderMissing(folder)
@@ -69,7 +87,7 @@ enum TerminalActivator {
             )
         case .terminal:
             let command = ClaudeTerminalCommand.shellCommand(directory: folder, resumeSessionID: resumeSessionID)
-            try runAppleScript("""
+            try await appleScriptRunner.execute("""
             tell application "Terminal"
                 activate
                 do script "\(appleScriptEscaped(command))"
@@ -77,7 +95,7 @@ enum TerminalActivator {
             """)
         case .iTerm:
             let command = ClaudeTerminalCommand.shellCommand(directory: folder, resumeSessionID: resumeSessionID)
-            try runAppleScript("""
+            try await appleScriptRunner.execute("""
             tell application "iTerm2"
                 activate
                 create window with default profile command "\(appleScriptEscaped(command))"
@@ -87,7 +105,12 @@ enum TerminalActivator {
             try launchWarp(directory: folder, resumeSessionID: resumeSessionID)
         case .automatic:
             // resolve(preference:program:) always returns a concrete terminal.
-            try launchClaude(at: folder, resumeSessionID: resumeSessionID, preference: .terminal)
+            try await launchClaude(
+                at: folder,
+                resumeSessionID: resumeSessionID,
+                preference: .terminal,
+                appleScriptRunner: appleScriptRunner
+            )
         }
     }
 
@@ -144,15 +167,6 @@ enum TerminalActivator {
         process.executableURL = URL(fileURLWithPath: executable)
         process.arguments = arguments
         try process.run()
-    }
-
-    private static func runAppleScript(_ source: String) throws {
-        var error: NSDictionary?
-        guard let script = NSAppleScript(source: source) else { throw TerminalLaunchError.appleScriptFailed("Invalid script") }
-        script.executeAndReturnError(&error)
-        if let error {
-            throw TerminalLaunchError.appleScriptFailed(error.description)
-        }
     }
 
     private static func yamlSingleQuoted(_ value: String) -> String {

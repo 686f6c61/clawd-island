@@ -35,5 +35,9 @@ let package = Package(
             name: "ClaudeIslandCoreTests",
             dependencies: ["ClaudeIslandCore"]
         ),
+        .testTarget(
+            name: "ClaudeIslandTests",
+            dependencies: ["ClaudeIsland"]
+        ),
     ]
 )

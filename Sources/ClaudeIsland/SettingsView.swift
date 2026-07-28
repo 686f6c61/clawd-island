@@ -667,6 +667,7 @@ private struct AppearanceIslandPreview: View {
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @ObservedObject var settings: AppSettings
     @ObservedObject var store: IslandStore
+    @StateObject private var previewDisplayState = IslandDisplayState()
     let mode: AppearancePreviewMode
     let toggleMode: () -> Void
 
@@ -715,9 +716,7 @@ private struct AppearanceIslandPreview: View {
                     IslandRootView(
                         store: store,
                         settings: settings,
-                        notchWidth: store.displayNotchWidth,
-                        notchHeight: store.displayNotchHeight,
-                        hasHardwareNotch: store.hasHardwareNotch,
+                        displayState: previewDisplayState,
                         previewPresentation: mode.presentation
                     )
                     .frame(width: panelSize.width, height: panelSize.height)
@@ -758,6 +757,18 @@ private struct AppearanceIslandPreview: View {
         .accessibilityHint("Click to show the \(mode == .compact ? "Expanded" : "Compact") preview")
         .animation(shouldReduceMotion ? nil : .easeInOut(duration: 0.2), value: mode)
         .animation(shouldReduceMotion ? nil : .easeInOut(duration: 0.2), value: panelSize)
+        .onAppear(perform: syncPreviewDisplayState)
+        .onChange(of: store.displayNotchWidth) { _, _ in syncPreviewDisplayState() }
+        .onChange(of: store.displayNotchHeight) { _, _ in syncPreviewDisplayState() }
+        .onChange(of: store.hasHardwareNotch) { _, _ in syncPreviewDisplayState() }
+    }
+
+    private func syncPreviewDisplayState() {
+        previewDisplayState.update(
+            notchWidth: store.displayNotchWidth,
+            notchHeight: store.displayNotchHeight,
+            hasHardwareNotch: store.hasHardwareNotch
+        )
     }
 }
 

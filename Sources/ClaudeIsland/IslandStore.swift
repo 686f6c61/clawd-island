@@ -123,11 +123,14 @@ final class IslandStore: ObservableObject {
     private var dormancyTask: Task<Void, Never>?
     private var peekTask: Task<Void, Never>?
     private var usageMonitorTask: Task<Void, Never>?
+    private var recentSessionSaveTask: Task<Void, Never>?
     private var usageNeedsKeychainAuthorization = false
     private var hasObservedClaudeActivity = false
     private let settings = AppSettings.shared
     private let recentSessionsKey = "recentClaudeSessions"
     private let recentSessionRetention: TimeInterval = 30 * 24 * 60 * 60
+    private let recentSessionLimit = 12
+    private let recentSessionSaveDelay: Duration = .milliseconds(350)
     private let usageSnapshotKey = "cachedClaudeUsageSnapshot"
     private let usageUpdatedKey = "cachedClaudeUsageUpdatedAt"
 
@@ -219,6 +222,13 @@ final class IslandStore: ObservableObject {
         }
     }
 
+    func setDisplayUnavailable() {
+        hasHardwareNotch = false
+        displayAttachment = "Waiting for a display…"
+        displayNotchWidth = 0
+        displayNotchHeight = 0
+    }
+
     func handle(event: HookEvent, reply: @escaping @Sendable (Data) -> Void) -> Bool {
         wakeForActivity()
         noteClaudeActivityIfNeeded(event.eventName)
@@ -295,10 +305,7 @@ final class IslandStore: ObservableObject {
             agent.lastActivity = event.lastAssistantMessage.map { String($0.prefix(120)) } ?? event.activitySummary
             agent.lastUpdated = Date()
             session.agents[agentID] = agent
-            if session.agents.count > 20 {
-                let retained = session.agents.values.sorted { $0.lastUpdated > $1.lastUpdated }.prefix(20)
-                session.agents = Dictionary(uniqueKeysWithValues: retained.map { ($0.id, $0) })
-            }
+            session.agents = AgentRetentionPolicy.retained(from: session.agents)
         }
 
         let activity = ActivityItem(date: Date(), text: event.activitySummary, kind: kind)
@@ -493,8 +500,16 @@ final class IslandStore: ObservableObject {
     }
 
     func clearRecentSessions() {
+        recentSessionSaveTask?.cancel()
+        recentSessionSaveTask = nil
         recentSessions = []
         UserDefaults.standard.removeObject(forKey: recentSessionsKey)
+    }
+
+    func flushRecentSessions() {
+        recentSessionSaveTask?.cancel()
+        recentSessionSaveTask = nil
+        persistRecentSessions()
     }
 
     func settingsDidChange() {
@@ -520,7 +535,7 @@ final class IslandStore: ObservableObject {
     }
 
     func reinstallHooks() {
-        guard let helper = helperExecutableURL() else {
+        guard let helper = HookBridgeCredential.helperExecutableURL() else {
             lastError = "ClaudeIslandHook is missing from the app bundle."
             return
         }
@@ -803,42 +818,63 @@ final class IslandStore: ObservableObject {
 
     private func updateRecentSession(from session: SessionRecord) {
         guard session.id != "unknown", !session.cwd.isEmpty else { return }
-        let cutoff = Date().addingTimeInterval(-recentSessionRetention)
-        recentSessions.removeAll { $0.lastUpdated < cutoff }
+        let now = Date()
         let snapshot = RecentClaudeSession(
             id: session.id,
             projectName: session.projectName,
             cwd: session.cwd,
             lastUpdated: session.lastUpdated
         )
-        recentSessions.removeAll { $0.id == snapshot.id }
-        recentSessions.insert(snapshot, at: 0)
-        recentSessions = Array(recentSessions.prefix(12))
+        recentSessions = RecentSessionHistory.updating(
+            recentSessions,
+            with: snapshot,
+            now: now,
+            retention: recentSessionRetention,
+            limit: recentSessionLimit
+        )
+        scheduleRecentSessionSave()
+    }
+
+    private func scheduleRecentSessionSave() {
+        recentSessionSaveTask?.cancel()
+        recentSessionSaveTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            do {
+                try await Task.sleep(for: self.recentSessionSaveDelay)
+            } catch {
+                return
+            }
+            guard !Task.isCancelled else { return }
+            self.persistRecentSessions()
+            self.recentSessionSaveTask = nil
+        }
+    }
+
+    private func persistRecentSessions() {
+        guard !recentSessions.isEmpty else {
+            UserDefaults.standard.removeObject(forKey: recentSessionsKey)
+            return
+        }
         if let data = try? JSONEncoder().encode(recentSessions) {
             UserDefaults.standard.set(data, forKey: recentSessionsKey)
         }
     }
 
     private func launchSession(in folder: String, resumeID: String?) {
-        do {
-            try TerminalActivator.launchClaude(
-                at: folder,
-                resumeSessionID: resumeID,
-                preference: settings.preferredTerminal
-            )
-            lastError = nil
-            setupStatus = resumeID == nil ? "Opening a new Claude session" : "Resuming Claude session"
-        } catch {
-            lastError = error.localizedDescription
-        }
-    }
+        let preference = settings.preferredTerminal
+        lastError = nil
+        setupStatus = resumeID == nil ? "Opening a new Claude session" : "Resuming Claude session"
 
-    private func helperExecutableURL() -> URL? {
-        if let bundled = Bundle.main.url(forResource: "ClaudeIslandHook", withExtension: nil) {
-            return bundled
+        Task { @MainActor [weak self] in
+            do {
+                try await TerminalActivator.launchClaude(
+                    at: folder,
+                    resumeSessionID: resumeID,
+                    preference: preference
+                )
+            } catch {
+                self?.lastError = error.localizedDescription
+            }
         }
-        let executable = URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL
-        let sibling = executable.deletingLastPathComponent().appendingPathComponent("ClaudeIslandHook")
-        return FileManager.default.isExecutableFile(atPath: sibling.path) ? sibling : nil
     }
 }

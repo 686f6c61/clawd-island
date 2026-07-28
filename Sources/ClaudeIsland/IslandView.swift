@@ -2,24 +2,6 @@ import AppKit
 import ClaudeIslandCore
 import SwiftUI
 
-private enum IslandPalette {
-    static let amber = Color(red: 0.98, green: 0.61, blue: 0.22)
-    static let green = Color(red: 0.35, green: 0.78, blue: 0.50)
-    static let red = Color(red: 0.92, green: 0.40, blue: 0.36)
-    static let secondary = Color.white.opacity(0.52)
-    static let separator = Color.white.opacity(0.10)
-    static let row = Color.white.opacity(0.035)
-
-    static func statusColor(_ status: SessionStatus) -> Color {
-        switch status {
-        case .running, .waiting: amber
-        case .completed: green
-        case .failed: red
-        case .idle: Color.white.opacity(0.28)
-        }
-    }
-}
-
 enum IslandPreviewPresentation {
     case compact
     case expanded
@@ -33,26 +15,24 @@ struct IslandRootView: View {
     @ObservedObject var store: IslandStore
     @ObservedObject var settings: AppSettings
     @ObservedObject private var updates: UpdateController
-    let notchWidth: CGFloat
-    let notchHeight: CGFloat
-    let hasHardwareNotch: Bool
+    @ObservedObject var displayState: IslandDisplayState
     let previewPresentation: IslandPreviewPresentation?
+
+    private var notchWidth: CGFloat { displayState.notchWidth }
+    private var notchHeight: CGFloat { displayState.notchHeight }
+    private var hasHardwareNotch: Bool { displayState.hasHardwareNotch }
 
     init(
         store: IslandStore,
         settings: AppSettings,
-        notchWidth: CGFloat,
-        notchHeight: CGFloat,
-        hasHardwareNotch: Bool,
+        displayState: IslandDisplayState,
         previewPresentation: IslandPreviewPresentation? = nil,
         updates: UpdateController = .shared
     ) {
         self.store = store
         self.settings = settings
         self.updates = updates
-        self.notchWidth = notchWidth
-        self.notchHeight = notchHeight
-        self.hasHardwareNotch = hasHardwareNotch
+        self.displayState = displayState
         self.previewPresentation = previewPresentation
     }
 
@@ -151,13 +131,17 @@ struct IslandRootView: View {
                 height: hasHardwareNotch ? max(notchHeight + 10, 40) : 18
             )
             .contentShape(Rectangle())
-            .accessibilityElement()
+            .accessibilityElement(children: .ignore)
             .accessibilityAddTraits(.isButton)
+            .accessibilitySortPriority(100)
             .zIndex(10)
 
         if renderedManuallyHidden {
             target
                 .onTapGesture(perform: store.showManuallyHiddenIsland)
+                .accessibilityAction {
+                    store.showManuallyHiddenIsland()
+                }
                 .accessibilityAction(named: "Show Claude Island") {
                     store.showManuallyHiddenIsland()
                 }
@@ -166,6 +150,9 @@ struct IslandRootView: View {
         } else {
             target
                 .gesture(visibleIslandGesture)
+                .accessibilityAction {
+                    store.handlePrimaryIslandClick()
+                }
                 .accessibilityAction(named: renderedExpanded ? "Collapse Claude Island" : "Expand Claude Island") {
                     store.handlePrimaryIslandClick()
                 }
@@ -414,6 +401,8 @@ private struct ExpandedIslandContent: View {
         }
         .padding(.horizontal, 18)
         .padding(.bottom, 14)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Claude Island expanded controls")
     }
 
     private var header: some View {

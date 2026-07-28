@@ -9,22 +9,28 @@ final class PanelController {
     private let settings: AppSettings
     private let panel: IslandPanel
     private let hostingController: NSHostingController<IslandRootView>
+    private let displayState: IslandDisplayState
     private var cancellables = Set<AnyCancellable>()
-    private var metrics: ScreenMetrics
+    private var metrics: ScreenMetrics?
     private var localClickMonitor: Any?
     private var globalClickMonitor: Any?
 
     init(store: IslandStore, settings: AppSettings) {
         self.store = store
         self.settings = settings
-        metrics = ScreenMetrics.current()
+        let initialMetrics = ScreenMetrics.current()
+        metrics = initialMetrics
+        let initialDisplayState = IslandDisplayState(
+            notchWidth: initialMetrics?.notchWidth ?? 0,
+            notchHeight: initialMetrics?.notchHeight ?? 0,
+            hasHardwareNotch: initialMetrics?.hasHardwareNotch ?? false
+        )
+        displayState = initialDisplayState
         hostingController = NSHostingController(
             rootView: IslandRootView(
                 store: store,
                 settings: settings,
-                notchWidth: metrics.notchWidth,
-                notchHeight: metrics.notchHeight,
-                hasHardwareNotch: metrics.hasHardwareNotch
+                displayState: initialDisplayState
             )
         )
         panel = IslandPanel(
@@ -35,10 +41,12 @@ final class PanelController {
         )
         configurePanel()
         installHiddenIslandClickRecovery()
-        publishMetrics()
+        publishMetrics(initialMetrics)
         observeStore()
         updateFrame(animated: false)
-        panel.orderFrontRegardless()
+        if initialMetrics != nil {
+            panel.orderFrontRegardless()
+        }
 
         NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
@@ -51,7 +59,9 @@ final class PanelController {
 
     func show() {
         screenConfigurationChanged(animated: true)
-        panel.orderFrontRegardless()
+        if metrics != nil {
+            panel.orderFrontRegardless()
+        }
     }
 
     private func configurePanel() {
@@ -106,27 +116,35 @@ final class PanelController {
             .store(in: &cancellables)
 
         settings.objectWillChange
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in
-                DispatchQueue.main.async { self?.refreshSettings() }
-            }
+            .debounce(for: .milliseconds(16), scheduler: RunLoop.main)
+            .sink { [weak self] _ in self?.refreshSettings() }
             .store(in: &cancellables)
     }
 
     private func screenConfigurationChanged(animated: Bool = false) {
-        metrics = ScreenMetrics.current()
-        publishMetrics()
-        hostingController.rootView = IslandRootView(
-            store: store,
-            settings: settings,
-            notchWidth: metrics.notchWidth,
-            notchHeight: metrics.notchHeight,
-            hasHardwareNotch: metrics.hasHardwareNotch
+        guard let nextMetrics = ScreenMetrics.current() else {
+            metrics = nil
+            store.setDisplayUnavailable()
+            panel.orderOut(nil)
+            return
+        }
+
+        let displayWasUnavailable = metrics == nil
+        metrics = nextMetrics
+        displayState.update(
+            notchWidth: nextMetrics.notchWidth,
+            notchHeight: nextMetrics.notchHeight,
+            hasHardwareNotch: nextMetrics.hasHardwareNotch
         )
-        updateFrame(animated: animated)
+        publishMetrics(nextMetrics)
+        updateFrame(animated: animated && !displayWasUnavailable)
+        if displayWasUnavailable {
+            panel.orderFrontRegardless()
+        }
     }
 
     private func updateFrame(animated: Bool) {
+        guard let metrics else { return }
         let size: CGSize
         if store.isManuallyHidden {
             size = IslandPanelLayout.manuallyHiddenSize(
@@ -182,17 +200,14 @@ final class PanelController {
     }
 
     private func refreshSettings() {
-        hostingController.rootView = IslandRootView(
-            store: store,
-            settings: settings,
-            notchWidth: metrics.notchWidth,
-            notchHeight: metrics.notchHeight,
-            hasHardwareNotch: metrics.hasHardwareNotch
-        )
         updateFrame(animated: true)
     }
 
-    private func publishMetrics() {
+    private func publishMetrics(_ metrics: ScreenMetrics?) {
+        guard let metrics else {
+            store.setDisplayUnavailable()
+            return
+        }
         store.setDisplayGeometry(
             displayName: metrics.screen.localizedName,
             attachment: metrics.attachment,
@@ -215,11 +230,14 @@ private struct ScreenMetrics {
     var hasHardwareNotch: Bool { attachment == .hardwareNotch }
 
     @MainActor
-    static func current() -> ScreenMetrics {
+    static func current() -> ScreenMetrics? {
         let pointer = NSEvent.mouseLocation
-        let screen = NSScreen.screens.first(where: { NSMouseInRect(pointer, $0.frame, false) })
+        guard let screen = NSScreen.screens.first(where: { NSMouseInRect(pointer, $0.frame, false) })
             ?? NSScreen.main
-            ?? NSScreen.screens[0]
+            ?? NSScreen.screens.first
+        else {
+            return nil
+        }
         let geometry = IslandDisplayGeometryResolver.resolve(
             safeAreaTop: Double(screen.safeAreaInsets.top),
             auxiliaryLeftMaxX: screen.auxiliaryTopLeftArea.map { Double($0.maxX) },

@@ -33,4 +33,45 @@ final class HookBridgeCredentialTests: XCTestCase {
 
         XCTAssertThrowsError(try HookBridgeCredential.ensureToken(homeDirectory: home))
     }
+
+    func testFindsExecutableHelperBesideCurrentExecutable() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+
+        let executable = directory.appendingPathComponent("ClaudeIsland")
+        let helper = directory.appendingPathComponent("ClaudeIslandHook")
+        XCTAssertTrue(FileManager.default.createFile(atPath: executable.path, contents: Data()))
+        XCTAssertTrue(FileManager.default.createFile(atPath: helper.path, contents: Data()))
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: helper.path)
+
+        XCTAssertEqual(
+            HookBridgeCredential.helperExecutableURL(
+                bundledHelperURL: nil,
+                executableURL: executable
+            ),
+            helper
+        )
+    }
+
+    func testRejectsNonExecutableHelper() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+
+        let executable = directory.appendingPathComponent("ClaudeIsland")
+        let helper = directory.appendingPathComponent("ClaudeIslandHook")
+        XCTAssertTrue(FileManager.default.createFile(atPath: executable.path, contents: Data()))
+        XCTAssertTrue(FileManager.default.createFile(atPath: helper.path, contents: Data()))
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: helper.path)
+
+        XCTAssertNil(
+            HookBridgeCredential.helperExecutableURL(
+                bundledHelperURL: nil,
+                executableURL: executable
+            )
+        )
+    }
 }
